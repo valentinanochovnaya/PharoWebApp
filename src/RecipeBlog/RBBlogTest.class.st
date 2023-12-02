@@ -4,15 +4,17 @@ Class {
 	#instVars : [
 		'blog',
 		'post',
-		'first'
+		'first',
+		'previousRepository'
 	],
 	#category : #'RecipeBlog-Tests'
 }
 
 { #category : #running }
 RBBlogTest >> setUp [
+previousRepository := VORepository current.
+VORepository setRepository: VOMemoryRepository new.
 blog := RBBlog current.
-blog removeAllPosts.
 first := RBPost title: 'A title' text: 'A text' category: 'First
 Category'.
 blog writeBlogPost: first.
@@ -22,8 +24,7 @@ category: 'Second Category') beVisible
 
 { #category : #running }
 RBBlogTest >> tearDown [
-RBBlog reset
-
+VORepository setRepository: previousRepository
 ]
 
 { #category : #tests }

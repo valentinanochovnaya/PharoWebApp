@@ -7,9 +7,6 @@ Class {
 	#instVars : [
 		'posts'
 	],
-	#classInstVars : [
-		'uniqueInstance'
-	],
 	#category : #'RecipeBlog-Model'
 }
 
@@ -32,18 +29,40 @@ writeBlogPost: ((RBPost title: 'Greek Beef Pitas' text: 'A local restaurant that
 
 { #category : #accessing }
 RBBlog class >> current [
-^ uniqueInstance ifNil: [ uniqueInstance := self new ]
-
+^ self selectAll
+ifNotEmpty: [ :x | x anyOne ]
+ifEmpty: [ self new save ]
 ]
 
 { #category : #'class initialization' }
 RBBlog class >> initialize [
 self reset
+
+]
+
+{ #category : #initialization }
+RBBlog class >> initializeLocalhostMongoDB [
+| repository |
+repository := VOMongoRepository database: 'recipeblog'.
+repository enableSingleton.
+]
+
+{ #category : #comparing }
+RBBlog class >> initializeVoyageOnMemoryDB [
+VOMemoryRepository new enableSingleton
+]
+
+{ #category : #testing }
+RBBlog class >> isVoyageRoot [
+"Indicates that instances of this class are top level documents
+in noSQL databases"
+^ true
+
 ]
 
 { #category : #initialization }
 RBBlog class >> reset [
-uniqueInstance := nil
+self initializeVoyageOnMemoryDB
 ]
 
 { #category : #'as yet unclassified' }
@@ -80,9 +99,11 @@ super initialize.
 posts := OrderedCollection new
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #removing }
 RBBlog >> removeAllPosts [
-posts := OrderedCollection new
+posts := OrderedCollection new.
+self save.
+
 ]
 
 { #category : #accessing }
@@ -90,8 +111,9 @@ RBBlog >> size [
 ^ posts size
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #writing }
 RBBlog >> writeBlogPost: aPost [
-posts add: aPost
-
+"Write the blog post in database"
+self allBlogPosts add: aPost.
+self save
 ]
